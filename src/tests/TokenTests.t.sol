@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import "../TokenFuzzTests.sol";
 import "./SampleToken.sol";
 
-contract TokenTestsTests is TokenTests, TokenFuzzTests 
+contract TokenTestsTests is TokenTests, TokenFuzzTests
  {
     function setUp() public {
         _token_ = address(new SampleToken());
@@ -22,10 +22,10 @@ contract TokenTestsTests is TokenTests, TokenFuzzTests
         checkBulkERC20(_token_, _contractName_, _tokenName_, _symbol_, "1", 18);
     }
     function testBulkPermit() public {
-        checkBulkPermit(_token_, _contractName_);
+        checkBulkPermit(_token_, _contractName_, 0xBEADBEEF, 0xCAFEBEEF);
     }
 
-    function testBulkMintBurnFuzz(        
+    function testBulkMintBurnFuzz(
         address who,
         uint256 allowance,
         uint256 mintAmount,

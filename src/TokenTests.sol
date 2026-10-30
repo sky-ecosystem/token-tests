@@ -102,27 +102,27 @@ abstract contract TokenTests is TokenChecks {
     // ************************************************************************************************************
 
     function testPermitEOA() public setup {
-        checkPermitEOA(_token_);
-    } 
+        checkPermitEOA(_token_, 0xBEADBEEF);
+    }
     function testPermitContract() public setup {
-        checkPermitContract(_token_);
-    } 
+        checkPermitContract(_token_, 0xBEADBEEF, 0xCAFEBEEF);
+    }
     function testPermitContractInvalidSignature() public setup {
-        checkPermitContractInvalidSignature(_token_, _contractName_);
+        checkPermitContractInvalidSignature(_token_, _contractName_, 0xBEADBEEF, 0xCAFEBEEF);
     }
     function testPermitBadNonce() public setup {
-        checkPermitBadNonce(_token_, _contractName_);
-    } 
+        checkPermitBadNonce(_token_, _contractName_, 0xBEADBEEF);
+    }
     function testPermitBadDeadline() public setup {
-        checkPermitBadDeadline(_token_, _contractName_);
-    } 
+        checkPermitBadDeadline(_token_, _contractName_, 0xBEADBEEF);
+    }
     function testPermitPastDeadline() public setup {
-        checkPermitPastDeadline(_token_, _contractName_);
-    } 
+        checkPermitPastDeadline(_token_, _contractName_, 0xBEADBEEF);
+    }
     function testPermitOwnerZero() public setup {
         checkPermitOwnerZero(_token_, _contractName_);
-    } 
+    }
     function testPermitReplay() public setup {
-        checkPermitReplay(_token_, _contractName_);
-    } 
+        checkPermitReplay(_token_, _contractName_, 0xBEADBEEF);
+    }
 }

@@ -17,7 +17,7 @@ pragma solidity >=0.8.0;
 
 import "./TokenChecks.sol";
 
-/** 
+/**
  * @title Token Fuzz Checks
  * @dev Contains fuzz checks for token contracts similar to test/SampleToken.sol
  */
@@ -332,6 +332,8 @@ contract TokenFuzzChecks is TokenChecks {
 
         address owner = vm.addr(privateKey);
 
+        vm.assume(owner.code.length == 0);
+
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             privateKey,
             keccak256(
@@ -352,7 +354,7 @@ contract TokenFuzzChecks is TokenChecks {
     }
 
     function checkPermitBadNonceFuzz(
-        address _token, 
+        address _token,
         string memory _contractName,
         uint128 privateKey,
         address to,
@@ -393,7 +395,7 @@ contract TokenFuzzChecks is TokenChecks {
 
         address owner = vm.addr(privateKey);
         uint256 nonce = TokenLike(_token).nonces(owner);
-        
+
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             privateKey,
             keccak256(
@@ -453,6 +455,9 @@ contract TokenFuzzChecks is TokenChecks {
         vm.assume(privateKey > 0);
 
         address owner = vm.addr(privateKey);
+
+        vm.assume(owner.code.length == 0);
+
         uint256 nonce = TokenLike(_token).nonces(owner);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(

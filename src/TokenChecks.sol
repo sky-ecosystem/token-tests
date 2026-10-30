@@ -76,7 +76,7 @@ contract MockMultisig is SignerLike {
     }
 }
 
-/** 
+/**
  * @title Token Checks
  * @dev Contains checks for token contracts similar to test/SampleToken.sol
  */
@@ -124,7 +124,7 @@ contract TokenChecks is DssTest {
         _token.setWard(address(this), 1);
 
         TokenLike(_token).mint(address(0xBEEF), 1e18);
-        
+
         _token.setWard(address(this), prevWard);
         assertEq(TokenLike(_token).totalSupply(), prevSupply + 1e18);
         assertEq(TokenLike(_token).balanceOf(address(0xBEEF)), prevRecipientBalance + 1e18);
@@ -339,23 +339,22 @@ contract TokenChecks is DssTest {
     bytes32 constant PERMIT_TYPEHASH =
         keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
 
-    function checkBulkPermit(address _token, string memory _contractName) internal {
-        checkPermitEOA(_token);
-        checkPermitContract(_token);
-        checkPermitContractInvalidSignature(_token, _contractName);
-        checkPermitBadNonce(_token, _contractName);
-        checkPermitBadDeadline(_token, _contractName);
-        checkPermitPastDeadline(_token, _contractName);
+    function checkBulkPermit(address _token, string memory _contractName, uint256 _privateKey1, uint256 _privateKey2) internal {
+        checkPermitEOA(_token, _privateKey1);
+        checkPermitContract(_token, _privateKey1, _privateKey2);
+        checkPermitContractInvalidSignature(_token, _contractName, _privateKey1, _privateKey2);
+        checkPermitBadNonce(_token, _contractName, _privateKey1);
+        checkPermitBadDeadline(_token, _contractName, _privateKey1);
+        checkPermitPastDeadline(_token, _contractName, _privateKey1);
         checkPermitOwnerZero(_token, _contractName);
-        checkPermitReplay(_token, _contractName);
+        checkPermitReplay(_token, _contractName, _privateKey1);
     }
 
-    function checkPermitEOA(address _token) internal {
-        uint256 privateKey = 0xBEEF;
-        address owner = vm.addr(privateKey);
+    function checkPermitEOA(address _token, uint256 _privateKey) internal {
+        address owner = vm.addr(_privateKey);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            privateKey,
+            _privateKey,
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
@@ -373,16 +372,14 @@ contract TokenChecks is DssTest {
         assertEq(TokenLike(_token).nonces(owner), 1);
     }
 
-    function checkPermitContract(address _token) internal {
-        uint256 privateKey1 = 0xBEEF;
-        address signer1 = vm.addr(privateKey1);
-        uint256 privateKey2 = 0xBEEE;
-        address signer2 = vm.addr(privateKey2);
+    function checkPermitContract(address _token, uint256 _privateKey1, uint256 _privateKey2) internal {
+        address signer1 = vm.addr(_privateKey1);
+        address signer2 = vm.addr(_privateKey2);
 
         address mockMultisig = address(new MockMultisig(signer1, signer2));
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            uint256(privateKey1),
+            uint256(_privateKey1),
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
@@ -393,7 +390,7 @@ contract TokenChecks is DssTest {
         );
 
         (uint8 v2, bytes32 r2, bytes32 s2) = vm.sign(
-            uint256(privateKey2),
+            uint256(_privateKey2),
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
@@ -412,16 +409,14 @@ contract TokenChecks is DssTest {
         assertEq(TokenLike(_token).nonces(mockMultisig), 1);
     }
 
-    function checkPermitContractInvalidSignature(address _token, string memory _contractName) internal {
-        uint256 privateKey1 = 0xBEEF;
-        address signer1 = vm.addr(privateKey1);
-        uint256 privateKey2 = 0xBEEE;
-        address signer2 = vm.addr(privateKey2);
+    function checkPermitContractInvalidSignature(address _token, string memory _contractName, uint256 _privateKey1, uint256 _privateKey2) internal {
+        address signer1 = vm.addr(_privateKey1);
+        address signer2 = vm.addr(_privateKey2);
 
         address mockMultisig = address(new MockMultisig(signer1, signer2));
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            uint256(privateKey1),
+            uint256(_privateKey1),
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
@@ -447,12 +442,11 @@ contract TokenChecks is DssTest {
         TokenLike(_token).permit(mockMultisig, address(0xCAFE), 1e18, block.timestamp, signature);
     }
 
-    function checkPermitBadNonce(address _token, string memory _contractName) internal {
-        uint256 privateKey = 0xBEEF;
-        address owner = vm.addr(privateKey);
+    function checkPermitBadNonce(address _token, string memory _contractName, uint256 _privateKey) internal {
+        address owner = vm.addr(_privateKey);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            privateKey,
+            _privateKey,
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
@@ -466,12 +460,11 @@ contract TokenChecks is DssTest {
         TokenLike(_token).permit(owner, address(0xCAFE), 1e18, block.timestamp, v, r, s);
     }
 
-    function checkPermitBadDeadline(address _token, string memory _contractName) internal {
-        uint256 privateKey = 0xBEEF;
-        address owner = vm.addr(privateKey);
+    function checkPermitBadDeadline(address _token, string memory _contractName, uint256 _privateKey) internal {
+        address owner = vm.addr(_privateKey);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            privateKey,
+            _privateKey,
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
@@ -485,13 +478,12 @@ contract TokenChecks is DssTest {
         TokenLike(_token).permit(owner, address(0xCAFE), 1e18, block.timestamp + 1, v, r, s);
     }
 
-    function checkPermitPastDeadline(address _token, string memory _contractName) internal {
-        uint256 privateKey = 0xBEEF;
-        address owner = vm.addr(privateKey);
+    function checkPermitPastDeadline(address _token, string memory _contractName, uint256 _privateKey) internal {
+        address owner = vm.addr(_privateKey);
         uint256 deadline = block.timestamp;
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            privateKey,
+            _privateKey,
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
@@ -512,12 +504,11 @@ contract TokenChecks is DssTest {
         TokenLike(_token).permit(address(0), address(0xCAFE), 1e18, block.timestamp, 28, bytes32(0), bytes32(0));
     }
 
-    function checkPermitReplay(address _token, string memory _contractName) internal {
-        uint256 privateKey = 0xBEEF;
-        address owner = vm.addr(privateKey);
+    function checkPermitReplay(address _token, string memory _contractName, uint256 _privateKey) internal {
+        address owner = vm.addr(_privateKey);
 
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            privateKey,
+            _privateKey,
             keccak256(
                 abi.encodePacked(
                     "\x19\x01",
